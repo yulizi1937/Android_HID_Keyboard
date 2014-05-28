@@ -1,0 +1,76 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+
+    <EditText
+        android:id="@+id/editText_Msg"
+        android:layout_width="280dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="36dp"
+        android:layout_marginTop="46dp"
+        android:ems="10"
+        android:inputType="text|textPassword" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/button_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editText_Msg"
+        android:layout_below="@+id/editText_Msg"
+        android:layout_marginTop="28dp"
+        android:onClick="sendMessage"
+        android:text="@string/Send" />
+
+    <Button
+        android:id="@+id/button_CtrlAltDel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button_backspace"
+        android:layout_below="@+id/button_backspace"
+        android:layout_marginTop="14dp"
+        android:onClick="sendCtrlAltDel"
+        android:text="@string/CtrlAltDel" />
+
+    <Button
+        android:id="@+id/button_WinL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/button_CtrlAltDel"
+        android:layout_alignBottom="@+id/button_CtrlAltDel"
+        android:layout_alignLeft="@+id/button_enter"
+        android:onClick="sendWinL"
+        android:text="@string/WinL" />
+
+    <Button
+        android:id="@+id/button_enter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/button_CtrlAltDel"
+        android:layout_marginLeft="18dp"
+        android:layout_toRightOf="@+id/button_CtrlAltDel"
+        android:onClick="sendEnter"
+        android:text="@string/Enter" />
+
+    <Button
+        android:id="@+id/button_backspace"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button_send"
+        android:layout_below="@+id/button_send"
+        android:layout_marginTop="50dp"
+        android:onClick="sendBackspace"
+        android:text="@string/Backspace" />
+
+</RelativeLayout>
