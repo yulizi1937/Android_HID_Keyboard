@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/LinearLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <Spinner
+        android:id="@+id/spinner_newrecord"
+        android:layout_width="597dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/textView_desc"
+        android:layout_width="130dp"
+        android:layout_height="30dp"
+        android:text="@string/Description" />
+
+    <EditText
+        android:id="@+id/editText_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="none" >
+    </EditText>
+
+    <TextView
+        android:id="@+id/TextView1"
+        android:layout_width="130dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/Username" />
+
+    <EditText
+        android:id="@+id/editText1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="none" />
+
+    <TextView
+        android:id="@+id/TextView2"
+        android:layout_width="130dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/Pass" />
+
+    <EditText
+        android:id="@+id/editText2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="none" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/button_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/Save"
+            android:onClick="Record_save"
+            style="?android:attr/button"  />
+
+        <Button
+            android:id="@+id/button_cancle_newrecord"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/cancle"
+            android:onClick="Cancle_NewRecord"
+            style="?android:attr/button"  />
+    </LinearLayout>
+
+</LinearLayout>

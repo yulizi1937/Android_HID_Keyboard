@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RelativeLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/LinearLayout1"
+        android:layout_below="@+id/LinearLayoutDesc"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp" >
+
+        <TextView
+            android:id="@+id/SendMsgTextView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="@string/SendMsg_TV1" />
+
+        <EditText
+            android:id="@+id/SendMsgEditText1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="none" >
+        </EditText>
+
+        <Button
+            android:id="@+id/SendMsgButton1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClickSend"
+            android:text="@string/Send" />
+    </LinearLayout>
+
+    <GridLayout
+        android:id="@+id/GridLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/boder"
+        android:columnCount="4"
+        android:rowCount="2" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_column="0"
+            android:layout_gravity="top"
+            android:layout_row="0"
+            android:text="@string/Key" />
+
+        <Button
+            android:id="@+id/button_winl"
+            style="?android:attr/button"
+            android:layout_column="0"
+            android:layout_row="1"
+            android:onClick="sendWinL"
+            android:text="@string/WinL" />
+
+        <Button
+            android:id="@+id/button_backspace"
+            style="?android:attr/button"
+            android:layout_column="1"
+            android:layout_row="1"
+            android:onClick="sendBackspace"
+            android:text="@string/Backspace" />
+
+        <Button
+            android:id="@+id/button_enter"
+            style="?android:attr/button"
+            android:layout_column="2"
+            android:layout_row="1"
+            android:onClick="sendEnter"
+            android:text="@string/Enter" />
+
+        <Button
+            android:id="@+id/button_ctrlaltdel"
+            style="?android:attr/button"
+            android:layout_column="3"
+            android:layout_row="1"
+            android:onClick="sendCtrlAltDel"
+            android:text="@string/CtrlAltDel" />
+    </GridLayout>
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/GridLayout"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="70dp"
+        android:background="@drawable/boder"
+        android:columnCount="2"
+        android:rowCount="2" >
+
+        <TextView
+            android:layout_gravity="left"
+            android:layout_row="0"
+            android:text="@string/UserDefine" />
+
+        <EditText
+            android:id="@+id/editTextUserDef"
+            android:layout_width="288dp"
+            android:layout_column="0"
+            android:layout_gravity="fill_horizontal"
+            android:layout_row="1"
+            android:inputType="none" >
+        </EditText>
+
+        <Button
+            android:id="@+id/buttonSendUserDef"
+            android:layout_gravity="left"
+            android:layout_row="1"
+            android:onClick="onClickSend"
+            android:text="@string/Send" />
+    </GridLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/LinearLayout2"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true" >
+
+        <Button
+            android:id="@+id/buttonEditRecord"
+            style="?android:attr/button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onEditRecord"
+            android:text="@string/Edit" />
+
+        <Button
+            android:id="@+id/buttonDeleteRecord"
+            style="?android:attr/button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onDelRecord"
+            android:text="@string/Delete" />
+
+        <Button
+            android:id="@+id/buttonCancleRecord"
+            style="?android:attr/button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onCancleRecord"
+            android:text="@string/cancle" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/LinearLayoutDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="2dp"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true" >
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="@string/Description" />
+
+        <TextView
+            android:id="@+id/textViewDesc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/LinearLayout2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/LinearLayout1" >
+
+        <TextView
+            android:id="@+id/SendMsgTextView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/SendMsg_TV2" />
+
+        <EditText
+            android:id="@+id/SendMsgEditText2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="textPassword" />
+
+        <Button
+            android:id="@+id/SendMsgButton2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClickSend"
+            android:text="@string/Send" />
+    </LinearLayout>
+
+</RelativeLayout>

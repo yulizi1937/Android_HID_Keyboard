@@ -1,0 +1,147 @@
+diff --git a/drivers/usb/gadget/Makefile b/drivers/usb/gadget/Makefile
+index 0c719e6..aee4321 100644
+--- a/drivers/usb/gadget/Makefile
++++ b/drivers/usb/gadget/Makefile
+@@ -66,7 +66,7 @@ g_nokia-y			:= nokia.o
+ g_webcam-y			:= webcam.o
+ g_ncm-y				:= ncm.o
+ g_acm_ms-y			:= acm_ms.o
+-g_android-y			:= android.o
++g_android-y			:= android.o f_hid.o
+ g_tcm_usb_gadget-y		:= tcm_usb_gadget.o
+ 
+ obj-$(CONFIG_USB_ZERO)		+= g_zero.o
+diff --git a/drivers/usb/gadget/android.c b/drivers/usb/gadget/android.c
+index 3d2851e..64edebd 100644
+--- a/drivers/usb/gadget/android.c
++++ b/drivers/usb/gadget/android.c
+@@ -41,6 +41,8 @@
+ #include "u_ether.c"
+ #include "f_dvc_dfx.c"
+ #include "f_dvc_trace.c"
++#include "f_hid.h"
++#include "f_hid_keyboard.c"
+ 
+ MODULE_AUTHOR("Mike Lockwood");
+ MODULE_DESCRIPTION("Android Composite USB Driver");
+@@ -947,6 +949,35 @@ static struct android_usb_function audio_source_function = {
+ 	.attributes	= audio_source_function_attributes,
+ };
+ 
++static int hid_function_init(struct android_usb_function *f, struct usb_composite_dev *cdev)
++{
++	return ghid_setup(cdev->gadget, 2);
++}
++
++static void hid_function_cleanup(struct android_usb_function *f)
++{
++	ghid_cleanup();
++}
++
++static int hid_function_bind_config(struct android_usb_function *f, struct usb_configuration *c)
++{
++	int ret;
++	printk(KERN_INFO "hid keyboard\n");
++	ret = hidg_bind_config(c, &ghid_device_android_keyboard, 0);
++	if (ret) {
++		pr_info("%s: hid_function_bind_config keyboard failed: %d\n", __func__, ret);
++		return ret;
++	}
++	return 0;
++}
++
++static struct android_usb_function hid_function = {
++	.name			= "hid",
++	.init			= hid_function_init,
++	.cleanup		= hid_function_cleanup,
++	.bind_config	= hid_function_bind_config,
++};
++
+ 
+ struct dvcdfx_function_config {
+ 	bool	enabled;
+@@ -1257,6 +1288,7 @@ static struct android_usb_function *supported_functions[] = {
+ 	&mass_storage_function,
+ 	&accessory_function,
+ 	&audio_source_function,
++	&hid_function,
+ 	&dvcdfx_function,
+ 	&dvctrace_function,
+ 	NULL
+@@ -1407,6 +1439,7 @@ functions_store(struct device *pdev, struct device_attribute *attr,
+ 	int err;
+ 	int is_ffs;
+ 	int ffs_enabled = 0;
++	int hid_enabled = 0;
+ 
+ 	mutex_lock(&dev->mutex);
+ 
+@@ -1463,6 +1496,11 @@ functions_store(struct device *pdev, struct device_attribute *attr,
+ 							   name, err);
+ 	}
+ 
++	err = android_enable_function(dev, "hid");
++	if (err)
++		pr_err("android_usb: Cannot enable '%s' (%d)",
++							   "hid", err);
++
+ 	mutex_unlock(&dev->mutex);
+ 
+ 	return size;
+diff --git a/drivers/usb/gadget/f_hid.c b/drivers/usb/gadget/f_hid.c
+index 6e69a8e..a8b7489 100644
+--- a/drivers/usb/gadget/f_hid.c
++++ b/drivers/usb/gadget/f_hid.c
+@@ -20,6 +20,8 @@
+ #include <linux/sched.h>
+ #include <linux/usb/g_hid.h>
+ 
++#include "f_hid.h"
++
+ static int major, minors;
+ static struct class *hidg_class;
+ 
+@@ -301,6 +303,7 @@ static unsigned int f_hidg_poll(struct file *file, poll_table *wait)
+ 	unsigned int	ret = 0;
+ 
+ 	poll_wait(file, &hidg->read_queue, wait);
++
+ 	poll_wait(file, &hidg->write_queue, wait);
+ 
+ 	if (WRITE_COND)
+@@ -560,7 +563,7 @@ const struct file_operations f_hidg_fops = {
+ 	.llseek		= noop_llseek,
+ };
+ 
+-static int __init hidg_bind(struct usb_configuration *c, struct usb_function *f)
++static int hidg_bind(struct usb_configuration *c, struct usb_function *f)
+ {
+ 	struct usb_ep		*ep;
+ 	struct f_hidg		*hidg = func_to_hidg(f);
+@@ -656,7 +659,7 @@ static void hidg_unbind(struct usb_configuration *c, struct usb_function *f)
+ 
+ 	/* disable/free request and end point */
+ 	usb_ep_disable(hidg->in_ep);
+-	usb_ep_dequeue(hidg->in_ep, hidg->req);
++	//usb_ep_dequeue(hidg->in_ep, hidg->req);
+ 	kfree(hidg->req->buf);
+ 	usb_ep_free_request(hidg->in_ep, hidg->req);
+ 
+@@ -689,7 +692,7 @@ static struct usb_gadget_strings *ct_func_strings[] = {
+ /*-------------------------------------------------------------------------*/
+ /*                             usb_configuration                           */
+ 
+-int __init hidg_bind_config(struct usb_configuration *c,
++int hidg_bind_config(struct usb_configuration *c,
+ 			    struct hidg_func_descriptor *fdesc, int index)
+ {
+ 	struct f_hidg *hidg;
+@@ -743,7 +746,7 @@ int __init hidg_bind_config(struct usb_configuration *c,
+ 	return status;
+ }
+ 
+-int __init ghid_setup(struct usb_gadget *g, int count)
++int ghid_setup(struct usb_gadget *g, int count)
+ {
+ 	int status;
+ 	dev_t dev;

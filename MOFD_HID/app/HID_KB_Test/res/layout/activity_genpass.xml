@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerHorizontal="true" >
+
+    <ToggleButton
+        android:id="@+id/toggleButton_lowercase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView1"
+        android:layout_alignBottom="@+id/textView1"
+        android:layout_centerHorizontal="true"
+        android:checked="true"
+        android:onClick="onTBLC_clicked" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView3"
+        android:layout_alignBottom="@+id/textView3"
+        android:layout_centerHorizontal="true"
+        android:checked="true"
+        android:onClick="onTBNum_clicked" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_uppercase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView2"
+        android:layout_alignBottom="@+id/textView2"
+        android:layout_alignLeft="@+id/toggleButton_lowercase"
+        android:checked="true"
+        android:onClick="onTBUC_clicked" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="14dp"
+        android:layout_marginTop="57dp"
+        android:layout_toLeftOf="@+id/toggleButton_spec"
+        android:text="@string/ULC" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/textView1"
+        android:layout_below="@+id/toggleButton_lowercase"
+        android:layout_marginTop="57dp"
+        android:text="@string/UUC" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView4"
+        android:layout_below="@+id/toggleButton_uppercase"
+        android:layout_marginTop="49dp"
+        android:text="@string/UN" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_below="@+id/toggleButton_num"
+        android:layout_marginTop="56dp"
+        android:text="@string/USC" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_spec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView4"
+        android:layout_alignBottom="@+id/textView4"
+        android:layout_alignLeft="@+id/toggleButton_num"
+        android:checked="true"
+        android:onClick="onTBSpec_clicked" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker_pass_len"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/toggleButton_spec"
+        android:layout_below="@+id/toggleButton_spec"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="92dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:inputType="none" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/textView3"
+        android:layout_alignTop="@+id/numberPicker_pass_len"
+        android:layout_marginTop="56dp"
+        android:text="@string/NOC" />
+
+    <Button
+        android:id="@+id/button_genpass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView1"
+        android:layout_below="@+id/numberPicker_pass_len"
+        android:layout_marginLeft="81dp"
+        android:layout_marginTop="99dp"
+        android:onClick="genPassword"
+        android:text="@string/genpass" />
+
+    <Button
+        android:id="@+id/button_cp2clipoard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/button_cancle"
+        android:layout_alignBottom="@+id/button_cancle"
+        android:layout_toRightOf="@+id/toggleButton_spec"
+        android:onClick="cp2clipboard"
+        android:text="@string/cp2clipboard" />
+
+    <Button
+        android:id="@+id/button_cancle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/textView5"
+        android:layout_below="@+id/button_genpass"
+        android:layout_marginTop="24dp"
+        android:onClick="cancle"
+        android:text="@string/cancle" />
+
+</RelativeLayout>

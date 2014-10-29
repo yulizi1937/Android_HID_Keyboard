@@ -1,0 +1,187 @@
+From 1f150ac479bc9f094e9e36c6ef208d1ff5ce8135 Mon Sep 17 00:00:00 2001
+From: yadongqi <yadong.qi@intel.com>
+Date: Wed, 2 Jul 2014 12:27:07 +0800
+Subject: [PATCH] HID framworks service
+
+Change-Id: I695a4d432d03ff2a8247737bc626b10656a26324
+---
+ Android.mk                                         |    1 +
+ core/java/android/os/IHidKeyboardService.aidl      |    5 ++
+ .../com/android/server/HidKeyboardService.java     |   19 ++++++
+ services/java/com/android/server/SystemServer.java |    7 +++
+ services/jni/Android.mk                            |    1 +
+ .../jni/com_android_server_HidKeyboardService.cpp  |   61 ++++++++++++++++++++
+ services/jni/onload.cpp                            |    2 +
+ 7 files changed, 96 insertions(+)
+ create mode 100644 core/java/android/os/IHidKeyboardService.aidl
+ create mode 100644 services/java/com/android/server/HidKeyboardService.java
+ create mode 100644 services/jni/com_android_server_HidKeyboardService.cpp
+
+diff --git a/Android.mk b/Android.mk
+index 522b6ff..f6ad5ba 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -186,6 +186,7 @@ LOCAL_SRC_FILES += \
+ 	core/java/android/os/IUpdateLock.aidl \
+ 	core/java/android/os/IUserManager.aidl \
+ 	core/java/android/os/IVibratorService.aidl \
++	core/java/android/os/IHidKeyboardService.aidl \
+ 	core/java/android/service/notification/INotificationListener.aidl \
+ 	core/java/android/print/ILayoutResultCallback.aidl \
+ 	core/java/android/print/IPrinterDiscoveryObserver.aidl \
+diff --git a/core/java/android/os/IHidKeyboardService.aidl b/core/java/android/os/IHidKeyboardService.aidl
+new file mode 100644
+index 0000000..0af6d1a
+--- /dev/null
++++ b/core/java/android/os/IHidKeyboardService.aidl
+@@ -0,0 +1,5 @@
++package android.os;
++
++interface IHidKeyboardService {
++	void sendReport(int len, inout byte[] report);
++}
+diff --git a/services/java/com/android/server/HidKeyboardService.java b/services/java/com/android/server/HidKeyboardService.java
+new file mode 100644
+index 0000000..36d9a06
+--- /dev/null
++++ b/services/java/com/android/server/HidKeyboardService.java
+@@ -0,0 +1,19 @@
++package com.android.server;
++import android.content.Context;
++import android.os.IHidKeyboardService;
++import android.util.Slog;
++
++public class HidKeyboardService extends IHidKeyboardService.Stub {
++	private static final String TAG = "HidKeyboardService";
++	
++	HidKeyboardService() {
++		init_native();
++	}
++
++	public void sendReport(int len, byte[] report) {
++		sendReport_native(len, report);
++	}
++
++	private static native boolean init_native();
++	private static native void sendReport_native(int len, byte[] report);
++};
+diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
+index abeaa29..3418648d 100755
+--- a/services/java/com/android/server/SystemServer.java
++++ b/services/java/com/android/server/SystemServer.java
+@@ -826,6 +826,13 @@ class ServerThread {
+                 reportWtf("starting DiskStats Service", e);
+             }
+ 
++			try {
++                Slog.i(TAG, "Hid Keyboard Service");
++                ServiceManager.addService("hidkeyboard", new HidKeyboardService());
++            } catch (Throwable e) {
++                Slog.e(TAG, "Fail start Hid Keyboard Service", e);
++            }
++
+             try {
+                 // need to add this service even if SamplingProfilerIntegration.isEnabled()
+                 // is false, because it is this service that detects system property change and
+diff --git a/services/jni/Android.mk b/services/jni/Android.mk
+index 3be390b..f99102f 100644
+--- a/services/jni/Android.mk
++++ b/services/jni/Android.mk
+@@ -9,6 +9,7 @@ else
+ endif
+ 
+ LOCAL_SRC_FILES:= \
++	com_android_server_HidKeyboardService.cpp \
+     com_android_server_AlarmManagerService.cpp \
+     com_android_server_AssetAtlasService.cpp \
+     com_android_server_ConsumerIrService.cpp \
+diff --git a/services/jni/com_android_server_HidKeyboardService.cpp b/services/jni/com_android_server_HidKeyboardService.cpp
+new file mode 100644
+index 0000000..cce9c35
+--- /dev/null
++++ b/services/jni/com_android_server_HidKeyboardService.cpp
+@@ -0,0 +1,61 @@
++#define LOG_TAG "HidKeyboardService"
++
++#include "jni.h"
++#include "JNIHelp.h"
++#include "android_runtime/AndroidRuntime.h"
++#include "android_runtime/Log.h"
++
++#include <utils/Log.h>
++#include <utils/misc.h>
++#include <hardware/hardware.h>
++#include <hardware/hid_keyboard.h>
++
++#include <stdio.h>
++
++namespace android
++{
++	struct hid_keyboard_device_t* hid_keyboard_device = NULL;
++
++	static void hid_keyboard_sendReport(JNIEnv* env, jobject clazz, jint len, jbyteArray value){
++		//LOGI("Hid JNI:send report to device.(len=%d)", len);
++		jbyte* report = env->GetByteArrayElements(value, 0);
++		if(!hid_keyboard_device) {
++			LOGI("Hid Keyboard JNI:device is not open.");
++			return;
++		}
++		hid_keyboard_device->write(hid_keyboard_device, len, (char *)report);
++		
++		env->ReleaseByteArrayElements(value, report, 0);
++
++	}
++
++	static inline int hid_keyboard_device_open(const hw_module_t* module, struct hid_keyboard_device_t** device) {
++		return module->methods->open(module, HID_KEYBOARD_HARDWARE_MODULE_ID, (struct hw_device_t**)device);
++	}
++
++	static jboolean hid_keyboard_init(JNIEnv* env, jclass clazz) {
++		hid_keyboard_module_t* module;
++
++		LOGI("Hid Keyboard JNI:initializing......");
++		if(hw_get_module(HID_KEYBOARD_HARDWARE_MODULE_ID, (const struct hw_module_t**)&module) == 0){
++			LOGI("Hid Keyboard JNI:hid keyboard Stub found.");
++			if(hid_keyboard_device_open(&(module->common), &hid_keyboard_device) == 0) {
++				LOGI("Hid Keyboard JNI:hid keyboard is open.");
++				return 0;
++			}
++			LOGI("Hid Keyboard JNI:hid keyboard failed open.");
++			return -1;
++		}
++		LOGI("Hid Keyboard JNI:hid keyboard Stub found failed.");
++		return -1;
++	}
++
++	static const JNINativeMethod method_table[] = {
++		{"init_native", "()Z", (void*)hid_keyboard_init},
++		{"sendReport_native", "(I[B)V", (void*)hid_keyboard_sendReport},
++	};
++
++	int register_android_server_HidKeyboardService(JNIEnv *env) {
++		return jniRegisterNativeMethods(env, "com/android/server/HidKeyboardService", method_table, NELEM(method_table));
++	}
++};
+diff --git a/services/jni/onload.cpp b/services/jni/onload.cpp
+index 03c15a9..c6e256e 100644
+--- a/services/jni/onload.cpp
++++ b/services/jni/onload.cpp
+@@ -20,6 +20,7 @@
+ #include "utils/misc.h"
+ 
+ namespace android {
++int register_android_server_HidKeyboardService(JNIEnv* env);
+ int register_android_server_AlarmManagerService(JNIEnv* env);
+ int register_android_server_ConsumerIrService(JNIEnv *env);
+ int register_android_server_InputApplicationHandle(JNIEnv* env);
+@@ -63,6 +64,7 @@ extern "C" jint JNI_OnLoad(JavaVM* vm, void* reserved)
+     ALOG_ASSERT(env, "Could not retrieve the env!");
+ 
+     register_android_server_PowerManagerService(env);
++    register_android_server_HidKeyboardService(env);
+     register_android_server_SerialService(env);
+     register_android_server_InputApplicationHandle(env);
+     register_android_server_InputWindowHandle(env);
+-- 
+1.7.9.5
+

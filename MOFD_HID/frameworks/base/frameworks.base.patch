@@ -1,0 +1,62 @@
+diff --git a/Android.mk b/Android.mk
+index 2c66e6d..d0391e9 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -184,6 +184,7 @@ LOCAL_SRC_FILES += \
+ 	core/java/android/os/IUpdateLock.aidl \
+ 	core/java/android/os/IUserManager.aidl \
+ 	core/java/android/os/IVibratorService.aidl \
++	core/java/android/os/IHidKeyboardService.aidl \
+ 	core/java/android/service/notification/INotificationListener.aidl \
+ 	core/java/android/print/ILayoutResultCallback.aidl \
+ 	core/java/android/print/IPrinterDiscoveryObserver.aidl \
+diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
+index 62dafe4..1418897 100755
+--- a/services/java/com/android/server/SystemServer.java
++++ b/services/java/com/android/server/SystemServer.java
+@@ -827,6 +827,13 @@ class ServerThread {
+                 reportWtf("starting DiskStats Service", e);
+             }
+ 
++			try {
++                Slog.i(TAG, "Hid Keyboard Service");
++                ServiceManager.addService("hidkeyboard", new HidKeyboardService());
++            } catch (Throwable e) {
++                Slog.e(TAG, "Fail starting Hid Keyboard Service", e);
++            }
++
+             try {
+                 // need to add this service even if SamplingProfilerIntegration.isEnabled()
+                 // is false, because it is this service that detects system property change and
+diff --git a/services/jni/Android.mk b/services/jni/Android.mk
+index 3be390b..6a279df 100644
+--- a/services/jni/Android.mk
++++ b/services/jni/Android.mk
+@@ -9,6 +9,7 @@ else
+ endif
+ 
+ LOCAL_SRC_FILES:= \
++    com_android_server_HidKeyboardService.cpp \
+     com_android_server_AlarmManagerService.cpp \
+     com_android_server_AssetAtlasService.cpp \
+     com_android_server_ConsumerIrService.cpp \
+diff --git a/services/jni/onload.cpp b/services/jni/onload.cpp
+index 03c15a9..c6e256e 100644
+--- a/services/jni/onload.cpp
++++ b/services/jni/onload.cpp
+@@ -20,6 +20,7 @@
+ #include "utils/misc.h"
+ 
+ namespace android {
++int register_android_server_HidKeyboardService(JNIEnv* env);
+ int register_android_server_AlarmManagerService(JNIEnv* env);
+ int register_android_server_ConsumerIrService(JNIEnv *env);
+ int register_android_server_InputApplicationHandle(JNIEnv* env);
+@@ -63,6 +64,7 @@ extern "C" jint JNI_OnLoad(JavaVM* vm, void* reserved)
+     ALOG_ASSERT(env, "Could not retrieve the env!");
+ 
+     register_android_server_PowerManagerService(env);
++    register_android_server_HidKeyboardService(env);
+     register_android_server_SerialService(env);
+     register_android_server_InputApplicationHandle(env);
+     register_android_server_InputWindowHandle(env);

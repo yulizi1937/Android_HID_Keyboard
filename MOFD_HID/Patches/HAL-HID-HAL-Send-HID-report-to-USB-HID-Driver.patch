@@ -1,0 +1,216 @@
+From f3a76b9cc6ab40fe9a687f5561ac8e91fffe146a Mon Sep 17 00:00:00 2001
+From: yadongqi <yadong.qi@intel.com>
+Date: Wed, 2 Jul 2014 12:21:18 +0800
+Subject: [PATCH] HID HAL: Send HID report to USB HID Driver
+
+Change-Id: I15e2b68e072fbb0928238eb1d9defa37a6634ddd
+---
+ include/hardware/hid_keyboard.h     |   23 +++++++
+ modules/Android.mk                  |    2 +-
+ modules/hid_keyboard/Android.mk     |   26 ++++++++
+ modules/hid_keyboard/hid_keyboard.c |  121 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 171 insertions(+), 1 deletion(-)
+ create mode 100644 include/hardware/hid_keyboard.h
+ create mode 100644 modules/hid_keyboard/Android.mk
+ create mode 100644 modules/hid_keyboard/hid_keyboard.c
+
+diff --git a/include/hardware/hid_keyboard.h b/include/hardware/hid_keyboard.h
+new file mode 100644
+index 0000000..be1442b
+--- /dev/null
++++ b/include/hardware/hid_keyboard.h
+@@ -0,0 +1,23 @@
++#ifndef ANDROID_HID_KEYBOARD_HAL_INTERFACE_H_
++#define ANDROID_HID_KEYBOARD_HAL_INTERFACE_H_
++
++#include <hardware/hardware.h>
++
++__BEGIN_DECLS
++
++#define HID_KEYBOARD_HARDWARE_MODULE_ID "hid_keyboard"
++
++struct hid_keyboard_module_t {
++	struct hw_module_t common;
++};
++
++struct hid_keyboard_device_t {
++	struct hw_device_t common;
++	int fd;
++	int (*write)(struct hid_keyboard_device_t* dev, uint16_t data_len, const char* data);
++	//int (*get_val)(struct hid_keyboard_t* dev, int* val);
++};
++
++__END_DECLS
++
++#endif
+diff --git a/modules/Android.mk b/modules/Android.mk
+index ea6ad89..26573c6 100644
+--- a/modules/Android.mk
++++ b/modules/Android.mk
+@@ -1,3 +1,3 @@
+ hardware_modules := gralloc hwcomposer audio nfc nfc-nci local_time \
+-	power usbaudio audio_remote_submix camera consumerir vibrator bcu_audioif bcu
++	power usbaudio audio_remote_submix camera consumerir vibrator bcu_audioif bcu hid_keyboard
+ include $(call all-named-subdir-makefiles,$(hardware_modules))
+diff --git a/modules/hid_keyboard/Android.mk b/modules/hid_keyboard/Android.mk
+new file mode 100644
+index 0000000..b3cdd1c
+--- /dev/null
++++ b/modules/hid_keyboard/Android.mk
+@@ -0,0 +1,26 @@
++# Copyright (C) 2011 The Android Open Source Project
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++LOCAL_PATH := $(call my-dir)
++
++# The format of the name is hid_keyboard.<hardware>.so
++include $(CLEAR_VARS)
++
++LOCAL_MODULE := hid_keyboard.default
++LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
++LOCAL_SRC_FILES := hid_keyboard.c
++LOCAL_SHARED_LIBRARIES := liblog libcutils
++LOCAL_MODULE_TAGS := optional
++
++include $(BUILD_SHARED_LIBRARY)
+diff --git a/modules/hid_keyboard/hid_keyboard.c b/modules/hid_keyboard/hid_keyboard.c
+new file mode 100644
+index 0000000..8ca2af7
+--- /dev/null
++++ b/modules/hid_keyboard/hid_keyboard.c
+@@ -0,0 +1,121 @@
++#define LOG_TAG "hid_keyboard_default"
++
++#include <hardware/hardware.h>
++#include <hardware/hid_keyboard.h>
++#include <fcntl.h>
++#include <errno.h>
++
++#include <cutils/log.h>
++#include <cutils/atomic.h>
++
++#define DEVICE_NAME "/dev/hidg0"
++#define MODULE_NAME "Hid Keyboard"
++#define MODULE_AUTHOR "yadong.qi@intel.com"
++
++static int hid_keyboard_device_close(struct hw_device_t* device){
++	struct hid_keyboard_device_t* hid_keyboard_device = (struct hid_keyboard_device_t*)device;
++	if(hid_keyboard_device) {
++		close(hid_keyboard_device->fd);
++		free(hid_keyboard_device);
++	}
++	return 0;
++}
++
++static int hid_keyboard_send_report(struct hid_keyboard_device_t* dev, uint16_t report_len, const char* report){
++	if(write(dev->fd, report, report_len) != report_len) {
++		LOGI("Hid_Keyboard:write report to /dev/hidg0 failed!");
++		return -EFAULT;
++	}
++	LOGI("Hid_Keyboard:write report to /dev/hidg0 successfully.");
++	return 0;	
++}
++
++
++static int hid_keyboard_device_open(const struct hw_module_t* module, const char* name, struct hw_device_t** device){
++	struct hid_keyboard_device_t* dev;
++	dev = (struct hid_keyboard_device_t*)malloc(sizeof(struct hid_keyboard_device_t));
++	if(!dev) {
++		LOGE("hid_keyboard: failed to alloc space!");
++		return -EFAULT;
++	}
++	
++	memset(dev, 0, sizeof(struct hid_keyboard_device_t));
++	dev->common.tag = HARDWARE_DEVICE_TAG;
++	dev->common.version = 0;
++	dev->common.module = (hw_module_t*)module;
++	dev->common.close = hid_keyboard_device_close;
++	dev->write = hid_keyboard_send_report;
++
++	if((dev->fd = open(DEVICE_NAME, O_RDWR)) == -1) {
++		LOGE("Hid Stub: failed to open /dev/hidg0 -- %s.",strerror(errno));
++		free(dev);
++		return -EFAULT;
++	}
++
++	*device = &(dev->common);
++	LOGI("Hid_Keyboard:open /dev/hidg0 successfully.");
++
++	return 0;
++
++}
++
++static struct hw_module_methods_t hid_keyboard_module_methods = {
++	.open = hid_keyboard_device_open,
++};
++
++struct hid_keyboard_module_t HAL_MODULE_INFO_SYM = {
++	.common = {
++		.tag = HARDWARE_MODULE_TAG,
++		.version_major = 1,
++		.version_minor = 0,
++		.id = HID_KEYBOARD_HARDWARE_MODULE_ID,
++		.name = MODULE_NAME,
++		.author = MODULE_AUTHOR,
++		.methods = &hid_keyboard_module_methods,
++	},
++};
++
++#if 0
++static int hid_keyboard_device_open(const struct hw_module_t* module, const char* name, struct hw_device_t** device)
++{
++	struct hid_keyboard_device_t* dev;
++	dev = (struct hid_keyboard_device_t*)malloc(sizeof(struct hid_keyboard_device_t));
++	if(!dev) {
++		LOGE("hid_keyboard: failed to alloc space!");
++		return -EFAULT;
++	
++	memset(dev, 0, sizeof(struct hid_keyboard_device_t));
++	dev->common.tag = HARDWARE_DEVICE_TAG;
++	dev->common.version = 0;
++	dev->common.module = (hw_module_t*)module;
++	dev->common.close = hid_keyboard_device_close;
++	dev->write = hid_keyboard_send_report;
++
++	if((dev->fd = open(DEVICE_NAME, O_RDWR)) == -1) {
++		LOGE("Hid Stub: failed to open /dev/hidg0 -- %s.",strerror(errno));
++		free(dev);
++		return -EFAULT;
++	}
++
++	*device = &(dev->common);
++	LOGI("Hid_Keyboard:open /dev/hidg0 successfully.");
++
++	return 0;
++}
++
++static int hid_keyboard_device_close (struct hw_device_t* device) {
++	struct hid_keyboard_device_t* hid_keyboard_device = (struct hid_keyboard_device_t*)device;
++	if(hid_keyboard_device) {
++		close(hid_keyboard_device->fd);
++		free(hid_keyboard_device);
++	}
++	return 0;
++}
++
++static int hid_keyboard_send_report(struct hid_keyboard_device_t* dev, uint16_t report_len, const char* report) {
++	
++	write(dev->fd, report, report_len);
++
++	return 0;
++}
++#endif
+-- 
+1.7.9.5
+

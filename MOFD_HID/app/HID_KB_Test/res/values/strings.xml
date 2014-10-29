@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HID_KB_Test</string>
+    <string name="action_settings">Settings</string>
+    <string name="Send">Send</string>
+    <string name="Backspace">Backspace</string>
+    <string name="Enter">Enter</string>
+    <string name="CtrlAltDel">CtrlAltDel</string>
+    <string name="WinL">WinL</string>
+    <string name="genpass">Generate Password</string>
+    <string name="action_genpass">Generate Password</string>
+    <string name="cancle">Cancle</string>
+    <string name="cp2clipboard">Copy to Clipboard</string>
+    <string name="ULC">Use Lower Case(a~z):</string>
+    <string name="UUC">Use Upper Case(A~Z):</string>
+    <string name="UN">Use Number(0~9):</string>
+    <string name="USC">Use Special(!@#$%):</string>
+    <string name="NOC">Number of Characters:</string>
+    <string name="toggle_on">ON</string>
+    <string name="toggle_off">OFF</string>
+    
+    <string name="new_record">New Record</string>
+    <string name="Description">Description:</string>
+    <string name="Username">Username:</string>
+    <string name="Pass">Password:</string>
+    <string name="Save">Save</string>
+    
+    <string name="IconEmail">IconEmail</string>
+    <string name="IconUnlock">IconUnlock</string>
+    
+    <string name="SendMsg_TV1">TextView1</string>
+    <string name="SendMsg_TV2">TextView2</string>
+    <string name="Key">Keys</string>
+    <string name="UserDefine">User Define</string>
+    
+    <string name="Edit">Edit</string>
+    <string name="Delete">Delete</string>
+
+</resources>
